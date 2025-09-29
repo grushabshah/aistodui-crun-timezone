@@ -1,0 +1,5 @@
+{
+  "name": "Global Time View (p1)",
+  "description": "A web application that displays the current digital time across all timezones in a comprehensive list. It features a live-updating epoch time at the top that can be copied to the clipboard, and each timezone entry shows the UTC offset, the precise ISO 8601 formatted time, and the corresponding IANA timezone names.",
+  "requestFramePermissions": []
+}
