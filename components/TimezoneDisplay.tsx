@@ -1,12 +1,12 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { formatOffsetToString } from '../services/timezoneService';
-import { CopyIcon, CheckIcon } from './Icons';
 
 interface TimezoneDisplayProps {
   offset: number;
   timezones: string[];
   currentTime: Date;
   pastedTime: Date | null;
+  onCopy: () => void;
 }
 
 const getPart = (parts: Intl.DateTimeFormatPart[], type: Intl.DateTimeFormatPartTypes): string => {
@@ -28,9 +28,7 @@ const formatTimeForDisplay = (date: Date, formatter: Intl.DateTimeFormat): strin
     return `${year}-${month}-${day}T${correctedHour}:${minute}:${second}.${milliseconds}`;
 };
 
-export const TimezoneDisplay: React.FC<TimezoneDisplayProps> = ({ offset, timezones, currentTime, pastedTime }) => {
-  const [isLiveCopied, setIsLiveCopied] = useState(false);
-  const [isPastedCopied, setIsPastedCopied] = useState(false);
+export const TimezoneDisplay: React.FC<TimezoneDisplayProps> = ({ offset, timezones, currentTime, pastedTime, onCopy }) => {
 
   const formattedOffset = useMemo(() => formatOffsetToString(offset), [offset]);
 
@@ -50,21 +48,15 @@ export const TimezoneDisplay: React.FC<TimezoneDisplayProps> = ({ offset, timezo
   const isoLocalTime = useMemo(() => formatTimeForDisplay(currentTime, formatter), [currentTime, formatter]);
   const isoPastedTime = useMemo(() => pastedTime ? formatTimeForDisplay(pastedTime, formatter) : null, [pastedTime, formatter]);
   
-  const handleCopy = useCallback((text: string | null, type: 'live' | 'pasted') => {
+  const handleCopy = useCallback((text: string | null) => {
     if (!text) return;
     navigator.clipboard.writeText(text).then(() => {
-      if (type === 'live') {
-        setIsLiveCopied(true);
-        setTimeout(() => setIsLiveCopied(false), 2000);
-      } else {
-        setIsPastedCopied(true);
-        setTimeout(() => setIsPastedCopied(false), 2000);
-      }
+      onCopy();
     });
-  }, []);
+  }, [onCopy]);
 
   const timeColumnClasses = "text-xl sm:text-2xl text-cyan-300 tracking-wider";
-  const timeContainerClasses = "w-full mb-2 md:mb-0 md:text-center relative group flex items-center justify-center cursor-pointer";
+  const timeContainerClasses = "w-full mb-2 md:mb-0 md:text-center relative flex items-center justify-center cursor-pointer";
 
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-center p-4 border-b border-gray-700 last:border-b-0 hover:bg-gray-700/50 transition-colors duration-200 text-sm">
@@ -75,27 +67,21 @@ export const TimezoneDisplay: React.FC<TimezoneDisplayProps> = ({ offset, timezo
 
       <div
         className={`${timeContainerClasses} ${pastedTime ? 'md:w-[30%]' : 'md:w-2/5'}`}
-        onClick={() => handleCopy(isoLocalTime, 'live')}
+        onClick={() => handleCopy(isoLocalTime)}
         aria-label="Copy live time to clipboard"
       >
         <span className="md:hidden font-bold text-gray-400 mr-2">Live Time:</span>
         <span className={timeColumnClasses}>{isoLocalTime}</span>
-        <div className="absolute right-0 transition-opacity duration-200 opacity-0 group-hover:opacity-100">
-          {isLiveCopied ? <CheckIcon className="w-5 h-5 text-green-400"/> : <CopyIcon className="w-5 h-5 text-gray-500"/>}
-        </div>
       </div>
 
       {pastedTime && (
          <div
             className={`${timeContainerClasses} md:w-[30%]`}
-            onClick={() => handleCopy(isoPastedTime, 'pasted')}
+            onClick={() => handleCopy(isoPastedTime)}
             aria-label="Copy entered time to clipboard"
          >
             <span className="md:hidden font-bold text-gray-400 mr-2">Entered Time:</span>
             <span className={`${timeColumnClasses} text-yellow-300`}>{isoPastedTime}</span>
-             <div className="absolute right-0 transition-opacity duration-200 opacity-0 group-hover:opacity-100">
-                {isPastedCopied ? <CheckIcon className="w-5 h-5 text-green-400"/> : <CopyIcon className="w-5 h-5 text-gray-500"/>}
-            </div>
         </div>
       )}
 
