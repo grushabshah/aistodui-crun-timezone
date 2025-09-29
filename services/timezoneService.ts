@@ -17,7 +17,10 @@ export const groupTimezonesByOffset = (): TimezoneData => {
   const dateString = now.toLocaleString('en-US', { timeZone: 'UTC' });
   const utcDate = new Date(dateString);
 
-  const grouped = timezones.reduce<TimezoneData>((acc, tz) => {
+  // FIX: The `timezones` variable is of type `any`, so `reduce` is an untyped
+  // function call that cannot accept type arguments. The fix is to remove the
+  // generic and cast the initial value of the accumulator to `TimezoneData`.
+  const grouped = timezones.reduce((acc, tz) => {
     try {
       const tzDate = new Date(now.toLocaleString('en-US', { timeZone: tz }));
       const offsetMinutes = (tzDate.getTime() - utcDate.getTime()) / 60000;
@@ -31,7 +34,7 @@ export const groupTimezonesByOffset = (): TimezoneData => {
       console.warn(`Could not process timezone: ${tz}`, e);
     }
     return acc;
-  }, {});
+  }, {} as TimezoneData);
 
   memoizedTimezoneData = grouped;
   return grouped;
